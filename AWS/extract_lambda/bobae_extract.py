@@ -76,7 +76,7 @@ def lambda_handler(event, context):
     # Step Function에서 전달된 키워드 가져오기
     keywords = event.get("keywords", [])
     if not keywords:
-        log_error("lambda_handler", url, "키워드 리스트가 입력되지 않음")
+        log_error("lambda_handler", "no_url", "키워드 리스트가 입력되지 않음")
         print("❌ 키워드가 제공되지 않았습니다.")
         return {"status": "No Keywords Provided"}
     
@@ -140,7 +140,8 @@ def lambda_handler(event, context):
                 
                 if not stop_flag:
                     page += 1
-                    time.sleep(1)
+                    delay = random.uniform(1, 3)
+                    time.sleep(delay)
           
     
     if html_data:

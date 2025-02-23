@@ -1,10 +1,11 @@
 import json
 import requests
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # 환경 변수에서 Slack Webhook URL 가져오기 (AWS Lambda 환경 변수에 등록 필수)
-SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/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"
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
+
 
 def send_slack_alert(log_data):
     """Slack Webhook으로 오류 알림 전송"""

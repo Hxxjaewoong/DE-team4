@@ -157,17 +157,17 @@ def lambda_handler(event, context):
     content_file_key = None
     comment_file_key = None
 
-    # 본문 데이터를 CSV로 저장
+    # 본문 데이터를 parquet로 저장
     if content_data:
-        comment_df = pd.DataFrame(comment_data)
-        comment_buffer = io.StringIO()
-        comment_df.to_csv(comment_buffer, index=False, encoding="utf-8-sig")
+        content_df = pd.DataFrame(content_data)
+        content_buffer = io.BytesIO()
+        content_df.to_parquet(content_buffer, index=False)
 
-        comment_file_key = f"{PROCESSED_DATA_PREFIX}{today_date}-comment.csv"
-        s3.put_object(Bucket=BUCKET_NAME, Key=comment_file_key, Body=comment_buffer.getvalue().encode("utf-8-sig"), ContentType="text/csv; charset=utf-8")
+        content_file_key = f"{PROCESSED_DATA_PREFIX}{today_date}-content.parquet"
+        s3.put_object(Bucket=BUCKET_NAME, Key=content_file_key, Body=content_buffer.getvalue(), ContentType="application/octet-stream")
         print(f"✅ 본문 데이터 저장 완료: {content_file_key}")
 
-    # 댓글 데이터를 CSV로 저장
+    # 댓글 데이터를 parquet로 저장
     if comment_data:
         comment_df = pd.DataFrame(comment_data)
         comment_buffer = io.BytesIO()
