@@ -1,0 +1,469 @@
+{
+    "Comment": "Step Function - HTML 수집 후 파싱/병합 실행 및 (병합 성공 시) EMR 생성 및 Spark Job 실행 (오류 발생 시 로깅)",
+    "StartAt": "GetKeywords",
+    "States": {
+      "GetKeywords": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+        "Parameters": {
+          "Bucket": "hmg5th-4-bucket",
+          "Key": "config/keywords.json"
+        },
+        "ResultSelector": {
+          "parsedBody.$": "States.StringToJson($.Body)"
+        },
+        "ResultPath": "$.keywords",
+        "Next": "ExecuteCrawlers"
+      },
+      "ExecuteCrawlers": {
+        "Type": "Parallel",
+        "Branches": [
+          {
+            "StartAt": "FmkoreaExtract",
+            "States": {
+              "FmkoreaExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:fmkorea_extract",
+                "Parameters": {
+                  "keywords.$": "$.keywords.parsedBody.keywords"
+                },
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorFmkoreaExtract",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "Next": "FmkoreaParse"
+              },
+              "LogErrorFmkoreaExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "fmkorea_extract",
+                  "error.$": "$.error"
+                },
+                "End": true
+              },
+              "FmkoreaParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:fmkorea_parse",
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorFmkoreaParse",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "End": true
+              },
+              "LogErrorFmkoreaParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "fmkorea_parse",
+                  "error.$": "$.error"
+                },
+                "End": true
+              }
+            }
+          },
+          {
+            "StartAt": "BobaeExtract",
+            "States": {
+              "BobaeExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:bobae_extract",
+                "Parameters": {
+                  "keywords.$": "$.keywords.parsedBody.keywords"
+                },
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorBobaeExtract",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "Next": "BobaeParse"
+              },
+              "LogErrorBobaeExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "bobae_extract",
+                  "error.$": "$.error"
+                },
+                "End": true
+              },
+              "BobaeParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:bobae_parse",
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorBobaeParse",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "End": true
+              },
+              "LogErrorBobaeParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "bobae_parse",
+                  "error.$": "$.error"
+                },
+                "End": true
+              }
+            }
+          },
+          {
+            "StartAt": "DCExtract",
+            "States": {
+              "DCExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:dcinside_extract",
+                "Parameters": {
+                  "keywords.$": "$.keywords.parsedBody.keywords"
+                },
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorDCExtract",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "Next": "DCParse"
+              },
+              "LogErrorDCExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "dc_extract",
+                  "error.$": "$.error"
+                },
+                "End": true
+              },
+              "DCParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:dcinside_parse",
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorDCParse",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "End": true
+              },
+              "LogErrorDCParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "dc_parse",
+                  "error.$": "$.error"
+                },
+                "End": true
+              }
+            }
+          },
+          {
+            "StartAt": "ClienExtract",
+            "States": {
+              "ClienExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:clien_extract",
+                "Parameters": {
+                  "keywords.$": "$.keywords.parsedBody.keywords"
+                },
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorClienExtract",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "Next": "ClienParse"
+              },
+              "LogErrorClienExtract": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "clien_extract",
+                  "error.$": "$.error"
+                },
+                "End": true
+              },
+              "ClienParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:clien_parse",
+                "Catch": [
+                  {
+                    "ErrorEquals": [
+                      "States.ALL"
+                    ],
+                    "Next": "LogErrorClienParse",
+                    "ResultPath": "$.error"
+                  }
+                ],
+                "End": true
+              },
+              "LogErrorClienParse": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+                "Parameters": {
+                  "status": "error",
+                  "source": "clien_parse",
+                  "error.$": "$.error"
+                },
+                "End": true
+              }
+            }
+          }
+        ],
+        "Next": "MergeResults"
+      },
+      "MergeResults": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:merge_lambda",
+        "ResultPath": "$.MergeOutput",
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "Next": "HandleMergeFailure",
+            "ResultPath": "$.error"
+          }
+        ],
+        "Next": "CheckMergeSuccess"
+      },
+      "CheckMergeSuccess": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.MergeOutput.status",
+            "StringEquals": "Merge process completed",
+            "Next": "LaunchEMRCluster"
+          }
+        ],
+        "Default": "HandleMergeFailure"
+      },
+      "HandleMergeFailure": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+        "Parameters": {
+          "status": "error",
+          "source": "merge_lambda",
+          "error.$": "$.error"
+        },
+        "End": true
+      },
+      "LaunchEMRCluster": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::elasticmapreduce:createCluster",
+        "Parameters": {
+          "Name": "Spark-Cluster",
+          "ReleaseLabel": "emr-6.9.0",
+          "Instances": {
+            "InstanceGroups": [
+              {
+                "Name": "Master nodes",
+                "Market": "ON_DEMAND",
+                "InstanceRole": "MASTER",
+                "InstanceType": "m5.xlarge",
+                "InstanceCount": 1
+              },
+              {
+                "Name": "Core nodes",
+                "Market": "ON_DEMAND",
+                "InstanceRole": "CORE",
+                "InstanceType": "m5.xlarge",
+                "InstanceCount": 2
+              }
+            ],
+            "Ec2SubnetId": "subnet-00c9c02ba5437a1c3",
+            "KeepJobFlowAliveWhenNoSteps": true,
+            "TerminationProtected": false
+          },
+          "JobFlowRole": "EMR_EC2_DefaultRole",
+          "ServiceRole": "EMR_DefaultRole",
+          "Applications": [
+            {
+              "Name": "Spark"
+            }
+          ],
+          "VisibleToAllUsers": true,
+          "LogUri": "s3://hmg5th-4-bucket/emr-logs/"
+        },
+        "ResultPath": "$.ClusterDetails",
+        "Next": "WaitForClusterReady"
+      },
+      "WaitForClusterReady": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:emr:describeCluster",
+        "Parameters": {
+          "ClusterId.$": "$.ClusterDetails.ClusterId"
+        },
+        "ResultPath": "$.ClusterStatus",
+        "Next": "CheckClusterStatus"
+      },
+      "CheckClusterStatus": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.ClusterStatus.Cluster.Status.State",
+            "StringEquals": "WAITING",
+            "Next": "SubmitSparkJob"
+          }
+        ],
+        "Default": "WaitForClusterReadyAgain"
+      },
+      "WaitForClusterReadyAgain": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "WaitForClusterReady"
+      },
+      "SubmitSparkJob": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::elasticmapreduce:addStep",
+        "Parameters": {
+          "ClusterId.$": "$.ClusterDetails.ClusterId",
+          "Step": {
+            "Name": "Spark Processing Job",
+            "ActionOnFailure": "CONTINUE",
+            "HadoopJarStep": {
+              "Jar": "command-runner.jar",
+              "Args": [
+                "spark-submit",
+                "--deploy-mode",
+                "cluster",
+                "--conf",
+                "spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem",
+                "--conf",
+                "spark.hadoop.fs.s3a.aws.credentials.provider=com.amazonaws.auth.InstanceProfileCredentialsProvider",
+                "--conf",
+                "spark.yarn.appMasterEnv.PYSPARK_PYTHON=/usr/bin/python3",
+                "--conf",
+                "spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=/usr/bin/python3",
+                "s3a://hmg5th-4-bucket/jobs/processing.py"
+              ]
+            }
+          }
+        },
+        "ResultSelector": {
+          "StepId.$": "$.StepId"
+        },
+        "ResultPath": "$.StepId",
+        "Next": "WaitForSparkCompletion"
+      },
+      "WaitForSparkCompletion": {
+        "Type": "Wait",
+        "Seconds": 60,
+        "Next": "CheckSparkJobStatus"
+      },
+      "CheckSparkJobStatus": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:emr:describeStep",
+        "Parameters": {
+          "ClusterId.$": "$.ClusterDetails.ClusterId",
+          "StepId.$": "$.StepId.StepId"
+        },
+        "ResultPath": "$.StepStatus",
+        "Next": "EvaluateSparkJobStatus"
+      },
+      "EvaluateSparkJobStatus": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.StepStatus.Step.Status.State",
+            "StringEquals": "COMPLETED",
+            "Next": "TerminateEMRClusterForLoad"
+          },
+          {
+            "Variable": "$.StepStatus.Step.Status.State",
+            "StringEquals": "FAILED",
+            "Next": "HandleSparkFailure"
+          },
+          {
+            "Variable": "$.StepStatus.Step.Status.State",
+            "StringEquals": "CANCELLED",
+            "Next": "HandleSparkFailure"
+          }
+        ],
+        "Default": "WaitForSparkCompletion"
+      },
+      "TerminateEMRClusterForLoad": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:emr:terminateJobFlows",
+        "Parameters": {
+          "JobFlowIds.$": "States.Array($.ClusterDetails.ClusterId)"
+        },
+        "Next": "RedshiftLoad"
+      },
+      "RedshiftLoad": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:redshift_load",
+        "Catch": [
+          {
+            "ErrorEquals": [
+              "States.ALL"
+            ],
+            "Next": "HandleRedshiftLoadError",
+            "ResultPath": "$.error"
+          }
+        ],
+        "End": true
+      },
+      "HandleRedshiftLoadError": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+        "Parameters": {
+          "status": "error",
+          "source": "redshift_load",
+          "error.$": "$.error"
+        },
+        "End": true
+      },
+      "HandleSparkFailure": {
+        "Type": "Task",
+        "Resource": "arn:aws:lambda:ap-northeast-2:473551908409:function:crawling_log_lambda",
+        "Parameters": {
+          "status": "error",
+          "source": "spark_job",
+          "error": "Spark job failed or was cancelled."
+        },
+        "Next": "TerminateEMRCluster"
+      },
+      "TerminateEMRCluster": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::aws-sdk:emr:terminateJobFlows",
+        "Parameters": {
+          "JobFlowIds.$": "States.Array($.ClusterDetails.ClusterId)"
+        },
+        "End": true
+      }
+    }
+  }
