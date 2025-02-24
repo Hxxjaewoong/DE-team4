@@ -51,6 +51,10 @@ def get_htmls(keyword, hrefs, result, is_failed):
         browser = p.chromium.launch(args=["--disable-gpu", "--single-process"], headless=True)
         page = browser.new_page()
         for href in hrefs:
+            if not browser.is_connected():
+                browser = p.chromium.launch(args=["--disable-gpu", "--single-process"], headless=True)
+            if page.is_closed():
+                page = browser.new_page()
             url = f'https://www.clien.net{href}'
             try:
                 inner_js = {}

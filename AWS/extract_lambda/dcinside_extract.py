@@ -14,10 +14,12 @@ def get_list_from_url(keyword, end_date, result_href_list, keyword_dict):
         browser = p.chromium.launch(args=["--disable-gpu", "--single-process"], headless=True)
         page = browser.new_page()
         for key in search_keywords:
+            if page.is_closed():
+                page = browser.new_page()
             try:
                 href_list.extend(get_inner_list(key, end_date, page))
             except Exception as e:
-                log_error("get_list_from_url", keyword + page, e)
+                log_error("get_list_from_url", key, e)
                 continue
     result_href_list[keyword] = list(set(href_list))
 
@@ -25,10 +27,12 @@ def get_inner_list(key, end_date, page):
     href_list = []
     page_number = 1
     while True:
+        if page_number > 15:
+            break
         print(key, page_number)
         try:
             url = f"https://gall.dcinside.com/board/lists/?id=car_new1&page={page_number}&search_pos=&s_type=search_subject_memo&s_keyword={key}"
-            page.goto(url)
+            page.goto(url, wait_until="load")
 
             # 페이지가 완전히 로드될 때까지 대기
             page.wait_for_selector("tbody.listwrap2")  # tbody 요소가 로드될 때까지 기다림
@@ -41,14 +45,15 @@ def get_inner_list(key, end_date, page):
                 td_time = tr.locator("td.gall_date").get_attribute("title")  # 추가
                 td_time = td_time.strip()  # strip()은 동기 메서드이므로 문제가 되지 않음
                 dt_post = datetime.strptime(td_time, "%Y-%m-%d %H:%M:%S")
-                print(td_time)
                 if dt_post < end_date:
+                    print(td_time)
                     return href_list
                 td_href = tr.locator("td.gall_num").inner_text()  # 추가
                 td_href = td_href.strip()  # strip()은 동기 메서드이므로 문제가 되지 않음
                 href_list.append(td_href)
         except Exception as e:
-            log_error("get_inner_list", url, print("목록 가져올 수 없음"))
+            log_error("get_inner_list", url, "목록 가져올 수 없음")
+            return e
         page_number += 1
         time.sleep(0.3)  # 비동기식으로 대기
 
@@ -131,6 +136,21 @@ def log_error(stage, url, error_message):
         Payload=json.dumps(log_payload)
     )
 
+def get_list(keywords, end_date, keyword_dict):
+    with Manager() as manager:
+        result_href_list = manager.dict()
+        processes = []
+        for keyword in keywords:
+            process = Process(target=get_list_from_url, args=(keyword, end_date, result_href_list, keyword_dict))
+            processes.append(process)
+            time.sleep(0.25)
+            process.start()
+        for process in processes:
+            process.join()
+    
+        result_href_list = dict(result_href_list)
+    return result_href_list
+
 def handler(event, context):
     keywords = event["keywords"]
     keyword_dict = os.getenv("KEYWORD_DICT",{'palisade': ["팰리", "펠리"],
@@ -143,18 +163,13 @@ def handler(event, context):
     yesterday = datetime.today() - timedelta(days=1)
     end_date = yesterday.replace(hour=0, minute=0, second=0, microsecond=0)
     today = datetime.today().strftime("%Y-%m-%d")
-
-    with Manager() as manager:
-        result_href_list = manager.dict()
-        processes = []
-        for keyword in keywords:
-            process = Process(target=get_list_from_url, args=(keyword, end_date, result_href_list, keyword_dict))
-            processes.append(process)
-            process.start()
-        for process in processes:
-            process.join()
-    
-        result_href_list = dict(result_href_list)
+    try:
+        result_href_list = get_list(keywords, end_date, keyword_dict)
+    except:
+        try: 
+            result_href_list = get_list(keywords, end_date, keyword_dict)
+        except:
+            return {"status":"Failed to get url list", "statusCode": 429, "body": "failed to get url list"}
 
     with Manager() as manager:
         result = manager.dict()

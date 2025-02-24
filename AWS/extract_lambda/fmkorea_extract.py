@@ -82,7 +82,7 @@ def get_htmls(keyword, hrefs, result, is_failed):
                 inner_js["keyword"] = keyword
                 inner_js["html"] = html
                 js[url] = inner_js
-                time.sleep(0.35)
+                time.sleep(0.5)
             except Exception as e:
                 if is_failed:
                     log_error("get_htmls", href, e)
@@ -156,6 +156,7 @@ def handler(event, context):
             process = Process(target=get_list_from_url, args=(keyword, end_date, result_href_list, keyword_dict))
             processes.append(process)
             process.start()
+            time.sleep(0.3)
         for process in processes:
             process.join()
     
