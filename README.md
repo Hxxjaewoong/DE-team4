@@ -37,6 +37,7 @@
 
 ## 📊 3. 대시보드 소개
 
+![Image](https://github.com/user-attachments/assets/19b665e1-8368-435f-aa4e-5ff1c88468d5)
 (이미지)
 
 ### 📌 주요 지표
