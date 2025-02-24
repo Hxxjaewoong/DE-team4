@@ -67,9 +67,7 @@
 <img width="1073" alt="Image" src="https://github.com/user-attachments/assets/8724207e-803d-4d31-af13-ccbcfdebd615" />
 
 ### 🔧 Step Function flow
-
-(이미지)
-
+<img width="835" alt="Image" src="https://github.com/user-attachments/assets/8fb67526-5dde-468a-8172-6141070d2070" />
 
 ### 🔧 자세한 사항은...
 - [아키텍처 다이어그램](https://github.com/softeer5th/DE-team4/tree/main/AWS)
