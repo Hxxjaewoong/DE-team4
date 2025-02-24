@@ -15,8 +15,11 @@
 - **실시간 대시보드 제공**: Power BI / Tableau / Streamlit을 활용한 시각화
 
 ### 🎯 기술 스택
+- 구현
 <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white"><img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"><img src="https://img.shields.io/badge/Hadoop-66CCFF?style=for-the-badge&logo=apachehadoop&logoColor=black"><img src="https://img.shields.io/badge/Spark-E25A1C?style=for-the-badge&logo=apachespark&logoColor=black"><img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white">
 
+
+- 협업
 <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=github&logoColor=white"><img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
 
 
@@ -29,7 +32,7 @@
 | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------------------: |
 |      <img src="https://github.com/" width="120px;" alt=""/>      |      <img src="https://github.com/" width="120px;" alt=""/>      |            <img src="https://github.com/" width="120px;" alt=""/>            |
 |           [한재웅](https://github.com/Hxxjaewoong)           |           [김태현](https://github.com/SpeOwO)           |                 [이채연](https://github.com/202002538)                 |
-|                            AWS Redshift, Tableau                            |                            Extract, Transform Pipelining                            |                                  AWS Architecture, Transform                                  |
+|                            팀원1 기능                            |                            팀원2 기능                            |                                  팀원3 기능                                  |
 
 </div>
 
