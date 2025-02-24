@@ -1,15 +1,11 @@
-# [프로젝트 이름]
-
-템플릿입니다
-
-작성중...!!!
+# 현대자동차 소프티어 부트캠프 5기 Data Engineering 4조
 
 ## 📌 1. 프로젝트 소개
 - **[프로젝트 이름]**은 현대 자동차 공식 PR 센터에서 강조한 셀링 포인트가 실제 대중의 관심을 잘 끌고 있는지 모니터링하기 위해 개발된 데이터 프로덕트 입니다. 
 
 - 본 프로젝트는 **크롤링, 데이터 처리, 분석, 시각화**를 자동화하여 실시간 인사이트를 제공합니다.
 - 크롤링 사이트: dcinside, fmkorea, clien, bobaedream
-- 크롤링 차종: palisade, tucson, avante, ionuq9
+- 크롤링 차종: palisade, tucson, avante, ioniq9
 
 
 
@@ -19,10 +15,10 @@
 - **실시간 대시보드 제공**: Power BI / Tableau / Streamlit을 활용한 시각화
 
 ### 🎯 기술 스택
-<img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white"><img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"><img src="https://img.shields.io/badge/Hadoop-66CCFF?style=for-the-badge&logo=apachehadoop&logoColor=black"><img src="https://img.shields.io/badge/Spark-E25A1C?style=for-the-badge&logo=apachespark&logoColor=black">
+<img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white"><img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"><img src="https://img.shields.io/badge/Hadoop-66CCFF?style=for-the-badge&logo=apachehadoop&logoColor=black"><img src="https://img.shields.io/badge/Spark-E25A1C?style=for-the-badge&logo=apachespark&logoColor=black"><img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white">
 
+<img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white"><img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=github&logoColor=white"><img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
 
-<img src="https://img.shields.io/badge/Amazon%20EC2-FF9900?style=for-the-badge&logo=Amazon%20EC2&logoColor=white"><img src="https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=Amazon%20S3&logoColor=white">
 
 ---
 
