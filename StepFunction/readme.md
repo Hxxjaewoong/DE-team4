@@ -16,6 +16,8 @@
     - 여러 크롤러에서 얻은 결과를 하나로 병합하기 위해 `merge_lambda`를 호출합니다.
     - 분기 중 일부에서 오류가 발생하면 병합 단계에서는 해당 데이터를 제외하고 병합하게 됩니다. 병합할 오늘자 데이터가 전혀 없는 경우는 에러를 로깅한 후 병합을 종료합니다.
     - 병합 결과의 상태가 "Merge process completed"이면 다음 단계로 진행하고, 그렇지 않으면 에러를 로깅하고 종료합니다.
+<img width="1048" alt="Image" src="https://github.com/user-attachments/assets/4f5b1b2c-d5c5-4a2c-b7bc-f8c4de5daf47" />
+
 4. **EMR 클러스터 생성 및 Spark Job 실행**
     - **LaunchEMRCluster:** EMR 클러스터를 생성합니다.
     - **WaitForClusterReady:** 클러스터가 `WAITING` 상태가 될 때까지 대기합니다.
@@ -27,3 +29,5 @@
 5. **Redshift 데이터 적재**
     - **RedshiftLoad:** 클러스터 종료 후, `redshift_load` Lambda 함수를 호출하여 Redshift로 데이터를 적재합니다.
     - 오류 발생 시, 별도의 에러 로깅 단계를 거칩니다.
+      
+<img width="689" alt="Image" src="https://github.com/user-attachments/assets/caadd198-2243-4774-a88c-6b2c6c5af1f3" />
