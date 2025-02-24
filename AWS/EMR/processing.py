@@ -116,12 +116,7 @@ df_merged = df_merged.withColumn("text",
 )
 
 # 필요 없는 컬럼 제거 (content, comment_agg, comments_count, likes)
-cols_to_drop = ["content", "comment_agg", "comments_count", "likes"]
-df_merged = df_merged.drop(*cols_to_drop)
-
-# df_post: model, title, url, popularity (정렬)
-df_post = df_merged.select("model", "title", "url", "popularity") \
-    .orderBy("model", F.col("popularity").desc())
+df_merged = df_merged.select("url", "site", "datetime", "model", "title", "views", "popularity", "text")
 
 # ----- 5. 키워드 및 감성 분석 데이터 로드 -----
 # 키워드-소분류, 소분류-대분류 데이터 (dictonary to df)
@@ -157,12 +152,20 @@ df_keywords = df_merged.select("model", "url", "title", "popularity", "text", "m
     .withColumn("keyword", F.explode("matched_keywords")) \
     .drop("matched_keywords", "text")
 
+# 작은 데이터셋은 broadcast join 활용
 # 소분류 정보 join (키: keyword)
-df_keywords = df_keywords.join(df_keyword_small.select("keyword", "small_category"), on="keyword", how="left")
+df_keywords = df_keywords.join(
+    F.broadcast(df_keyword_small.select("keyword", "small_category")),
+    on="keyword",
+    how="left"
+)
 
 # 대분류 정보 join (키: small_category)
-df_keywords = df_keywords.join(df_small_large.select("small_category", "large_category"), on="small_category", how="left")
-
+df_keywords = df_keywords.join(
+    F.broadcast(df_small_large.select("small_category", "large_category")),
+    on="small_category",
+    how="left"
+)
 # 최종 컬럼 순서 조정
 df_keywords = df_keywords.select("model", "url", "title", "keyword", "small_category", "large_category", "popularity")
 
@@ -213,8 +216,9 @@ df_merged = df_merged.withColumn("positive", count_occurrences_udf(F.col("text")
 # df_sentiment: model, url, positive, negative
 df_sentiment = df_merged.select("model", "url", "positive", "negative")
 # text 컬럼은 이후 삭제 (이미 사용한 경우)
-df_merged = df_merged.drop("text")
+df_merged = df_merged.select("site", "datetime", "model", "title", "url", "popularity", "views", "positive", "negative")
 
+df_keywords.cache()
 # ----- 8. 데이터 집계 -----
 # (1) 소분류별 집계: model, large_category, small_category별 popularity 합계 - live_popularity.parquet
 df_small_category = df_keywords.groupBy("model", "large_category", "small_category") \
@@ -246,15 +250,13 @@ if filtered_df.count() > 0:  # 데이터가 있는 경우에만 저장
     filtered_df.write.mode("overwrite").option("header", "true").csv(alarm_path)
 
 # (5)
-df_post = df_merged.select("site", "datetime", "model", "title", "url", "popularity", "views", "positive", "negative")
 df_keyword = df_keywords.select("url", "keyword", "small_category", "large_category")
 
 # save
 output_base = f"s3a://hmg5th-4-bucket/transformed_data/{today}/"
 
-df_post.write.mode("overwrite").parquet(output_base + "post.parquet")
+df_merged.write.mode("overwrite").parquet(output_base + "post.parquet")
 df_keyword.write.mode("overwrite").parquet(output_base + "keyword.parquet")
 df_small_category.write.mode("overwrite").parquet(output_base + "live_popularity.parquet")
 df_post_small_category.write.mode("overwrite").parquet(output_base + "live_category.parquet")
 df_category_sentiment.write.mode("overwrite").parquet(output_base + "live_sentiment.parquet")
-df_post.coalesce(1).rdd.saveAsTextFile(output_base + "live_post.parquet")
